@@ -8,10 +8,10 @@
 
 ```json
 {
-  "publisher": "你的Publisher ID",
+  "publisher": "Nywerya",
   "repository": {
     "type": "git",
-    "url": "你的公开仓库地址"
+    "url": "https://github.com/Mamekokwai/Mamecolour"
   }
 }
 ```

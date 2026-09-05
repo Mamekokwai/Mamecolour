@@ -2,12 +2,22 @@
   "name": "mamecolour",
   "displayName": "Mamecolour Theme Palette",
   "description": "Derive a complete VS Code workbench palette from one base window color.",
-  "version": "0.1.0",
-  "publisher": "mamecolour",
+  "version": "0.1.1",
+  "publisher": "Nywerya",
   "license": "MIT",
+  "icon": "public/icon/Icon_V1.0.png",
+  "galleryBanner": {
+    "color": "#1F1F1F",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_ACCOUNT/mamecolour"
+    "url": "https://github.com/Mamekokwai/Mamecolour"
+  },
+  "homepage": "https://github.com/Mamekokwai/Mamecolour#readme",
+  "bugs": {
+    "url": "https://github.com/Mamekokwai/Mamecolour/issues",
+    "email": "Nywerya@gmail.com"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -19,7 +29,6 @@
     "theme",
     "color",
     "palette",
-    "catppuccin",
     "workbench"
   ],
   "main": "./extension.js",
@@ -48,14 +57,14 @@
       "properties": {
         "mamecolour.baseColor": {
           "type": "string",
-          "default": "#2b1e2e",
+          "default": "#1F1F1F",
           "description": "Base window color in #RRGGBB format.",
           "pattern": "^#[0-9a-fA-F]{6}$"
         },
         "mamecolour.themeName": {
           "type": "string",
-          "default": "Catppuccin Mocha",
-          "description": "Theme scope inside workbench.colorCustomizations."
+          "default": "",
+          "description": "Optional theme scope inside workbench.colorCustomizations. Leave empty to apply to all themes."
         },
         "mamecolour.configurationTarget": {
           "type": "string",

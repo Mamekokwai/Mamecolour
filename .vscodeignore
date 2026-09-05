@@ -4,3 +4,6 @@ node_modules/**
 *.log
 PUBLISHING.md
 CHANGELOG.md
+public/icon/src/**
+public/icon/*.af
+public/icon/*lock*

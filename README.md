@@ -14,7 +14,7 @@ Mamecolour 是一个 VS Code 扩展：使用一个窗口基础色，自动计算
 
 1. 安装扩展后，按 `Ctrl+Shift+P` 打开命令面板。
 2. 执行 `Mamecolour: Set Window Base Color`。
-3. 输入例如 `#2b1e2e`，确认后自动应用。
+3. 在调色盘中拖动色相条和颜色区域，或输入 `#1F1F1F`，点击“应用”。
 
 可用命令：
 
@@ -26,13 +26,33 @@ Mamecolour 是一个 VS Code 扩展：使用一个窗口基础色，自动计算
 
 ```json
 {
-  "mamecolour.baseColor": "#2b1e2e",
-  "mamecolour.themeName": "Catppuccin Mocha",
+  "mamecolour.baseColor": "#1F1F1F",
+  "mamecolour.themeName": "",
   "mamecolour.configurationTarget": "workspace"
 }
 ```
 
+`themeName` 留空时，生成的颜色会应用到所有 VS Code 主题；填写主题名称后，才会限制在该主题范围内。
+
 `configurationTarget` 为 `workspace` 时写入项目的 `.vscode/settings.json`，为 `global` 时写入用户设置。
+
+## 界面预览
+
+### 命令面板
+
+![Mamecolour 命令面板](public/screenshot-01.png)
+
+### 发布配置
+
+![Mamecolour 发布配置](public/screenshot-02.png)
+
+### 应用颜色后的效果
+
+![Mamecolour 应用颜色](public/screenshot-03.png)
+
+## 联系方式
+
+问题反馈：<Nywerya@gmail.com>
 
 ## 本地开发
 

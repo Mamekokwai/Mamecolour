@@ -178,6 +178,13 @@ const GENERATED_KEYS = [
   "titleBar.inactiveBackground"
 ];
 
+const DEFAULT_BASE_COLOR = '#1F1F1F';
+
+function getThemeScope(configuration) {
+  const themeName = configuration.get('themeName', '').trim();
+  return themeName ? '[' + themeName + ']' : undefined;
+}
+
 function hexToHsl(hex) {
   const value = hex.replace(/^#/, '');
   if (!/^[0-9a-fA-F]{6}$/.test(value)) {
@@ -255,12 +262,12 @@ function buildPalette(base) {
     selectionAlpha: withAlpha(selection, '80'),
     accentAlphaHover: withAlpha(accent, '80'),
     accentAlphaActive: withAlpha(accent, 'A0'),
-    ansiRed: '#F38BA8',
-    ansiGreen: '#A6E3A1',
-    ansiYellow: '#F9E2AF',
-    ansiBlue: '#89B4FA',
-    ansiMagenta: '#CBA6F7',
-    ansiCyan: '#94E2D5'
+    ansiRed: '#F14C4C',
+    ansiGreen: '#23D18B',
+    ansiYellow: '#F5D76E',
+    ansiBlue: '#3B8EEA',
+    ansiMagenta: '#D670D6',
+    ansiCyan: '#29B8DB'
   };
 }
 
@@ -500,47 +507,200 @@ function targetFor(configuration) {
     : vscode.ConfigurationTarget.Workspace;
 }
 
+let colorPickerPanel;
+
+function createNonce() {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let nonce = '';
+  for (let index = 0; index < 32; index += 1) {
+    nonce += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+  }
+  return nonce;
+}
+
+function colorPickerHtml(initialColor, nonce) {
+  const safeColor = /^#[0-9a-fA-F]{6}$/.test(initialColor) ? initialColor.toUpperCase() : DEFAULT_BASE_COLOR;
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <style>
+    :root { color-scheme: light dark; }
+    body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 24px; }
+    .container { max-width: 440px; margin: 0 auto; }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 18px; }
+    .picker { display: grid; grid-template-columns: 1fr 18px; gap: 14px; align-items: stretch; }
+    #sv { position: relative; height: 260px; border-radius: 6px; cursor: crosshair; background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), #f00; box-shadow: inset 0 0 0 1px #0005; touch-action: none; }
+    #sv-thumb { position: absolute; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000; transform: translate(-50%, 50%); pointer-events: none; }
+    #hue { appearance: none; width: 260px; height: 18px; transform: rotate(-90deg) translateX(-100%); transform-origin: top left; margin: 0; border-radius: 9px; background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%); cursor: pointer; }
+    #hue::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; border: 2px solid #fff; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px #000; }
+    #hue::-moz-range-thumb { width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px #000; }
+    .preview-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+    #preview { width: 34px; height: 34px; border-radius: 5px; border: 1px solid var(--vscode-contrastBorder, #888); }
+    #hex { flex: 1; box-sizing: border-box; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, #888); padding: 8px 10px; font: inherit; text-transform: uppercase; }
+    input:focus, button:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+    button { border: 0; border-radius: 2px; padding: 7px 14px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); cursor: pointer; font: inherit; }
+    button:hover { background: var(--vscode-button-hoverBackground); }
+    #cancel { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+    #error { min-height: 18px; color: var(--vscode-errorForeground); font-size: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>设置窗口基础色</h1>
+    <div class="picker">
+      <div id="sv" role="slider" aria-label="饱和度和明度"><div id="sv-thumb"></div></div>
+      <input id="hue" type="range" min="0" max="360" step="1" aria-label="色相">
+    </div>
+    <div class="preview-row">
+      <div id="preview" aria-hidden="true"></div>
+      <input id="hex" type="text" maxlength="7" spellcheck="false" aria-label="HEX 颜色值">
+    </div>
+    <div id="error" role="alert"></div>
+    <div class="actions"><button id="cancel">取消</button><button id="apply">应用</button></div>
+  </main>
+  <script nonce="${nonce}">
+    const vscode = acquireVsCodeApi();
+    const sv = document.getElementById('sv');
+    const thumb = document.getElementById('sv-thumb');
+    const hue = document.getElementById('hue');
+    const hex = document.getElementById('hex');
+    const preview = document.getElementById('preview');
+    const error = document.getElementById('error');
+    let hsv = { h: 0, s: 0, v: 0 };
+
+    function hexToHsv(value) {
+      const r = parseInt(value.slice(1, 3), 16) / 255;
+      const g = parseInt(value.slice(3, 5), 16) / 255;
+      const b = parseInt(value.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      let h = 0;
+      if (d) {
+        if (max === r) h = ((g - b) / d) % 6;
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+      }
+      return { h, s: max ? (max - min) / max : 0, v: max };
+    }
+
+    function hsvToHex(h, s, v) {
+      const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+      let r = 0, g = 0, b = 0;
+      if (h < 60) [r, g, b] = [c, x, 0];
+      else if (h < 120) [r, g, b] = [x, c, 0];
+      else if (h < 180) [r, g, b] = [0, c, x];
+      else if (h < 240) [r, g, b] = [0, x, c];
+      else if (h < 300) [r, g, b] = [x, 0, c];
+      else [r, g, b] = [c, 0, x];
+      return '#' + [r, g, b].map(channel => Math.round((channel + m) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function render() {
+      const color = hsvToHex(hsv.h, hsv.s, hsv.v);
+      sv.style.background = 'linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), hsl(' + hsv.h + ' 100% 50%)';
+      thumb.style.left = (hsv.s * 100) + '%';
+      thumb.style.bottom = (hsv.v * 100) + '%';
+      hue.value = hsv.h;
+      hex.value = color;
+      preview.style.background = color;
+      error.textContent = '';
+    }
+
+    function updateSv(event) {
+      const rect = sv.getBoundingClientRect();
+      hsv.s = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      hsv.v = Math.max(0, Math.min(1, 1 - (event.clientY - rect.top) / rect.height));
+      render();
+    }
+
+    sv.addEventListener('pointerdown', event => { sv.setPointerCapture(event.pointerId); updateSv(event); });
+    sv.addEventListener('pointermove', event => { if (event.buttons) updateSv(event); });
+    hue.addEventListener('input', () => { hsv.h = Number(hue.value); render(); });
+    hex.addEventListener('input', () => {
+      const value = hex.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(value)) { hsv = hexToHsv(value); render(); }
+      else error.textContent = '请输入 #RRGGBB 格式';
+    });
+    document.getElementById('cancel').addEventListener('click', () => vscode.postMessage({ type: 'cancel' }));
+    document.getElementById('apply').addEventListener('click', () => {
+      const value = hex.value.trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(value)) { error.textContent = '请输入 #RRGGBB 格式'; return; }
+      vscode.postMessage({ type: 'apply', color: value.toUpperCase() });
+    });
+    hex.addEventListener('keydown', event => { if (event.key === 'Enter') document.getElementById('apply').click(); });
+    hsv = hexToHsv('${safeColor}');
+    render();
+  </script>
+</body>
+</html>`;
+}
+
 async function applyBaseColor() {
   const configuration = vscode.workspace.getConfiguration('mamecolour');
-  const base = configuration.get('baseColor', '#2b1e2e').trim();
-  const themeName = configuration.get('themeName', 'Catppuccin Mocha').trim() || 'Catppuccin Mocha';
+  const base = configuration.get('baseColor', DEFAULT_BASE_COLOR).trim();
   const colors = buildCustomizations(base);
   const target = targetFor(configuration);
   const workbench = vscode.workspace.getConfiguration();
   const current = workbench.get('workbench.colorCustomizations') || {};
-  const themeKey = '[' + themeName + ']';
-  const next = { ...current, [themeKey]: { ...(current[themeKey] || {}), ...colors } };
+  const themeKey = getThemeScope(configuration);
+  const next = { ...current };
+  if (themeKey) next[themeKey] = { ...(current[themeKey] || {}), ...colors };
+  else Object.assign(next, colors);
   await workbench.update('workbench.colorCustomizations', next, target);
   vscode.window.showInformationMessage('Mamecolour 已应用基础色 ' + base + '（' + Object.keys(colors).length + ' 项）');
 }
 
 async function setBaseColor() {
   const configuration = vscode.workspace.getConfiguration('mamecolour');
-  const current = configuration.get('baseColor', '#2b1e2e');
-  const value = await vscode.window.showInputBox({
-    title: 'Mamecolour：设置窗口基础色',
-    prompt: '输入 #RRGGBB，其他界面颜色将从此颜色自动派生',
-    value: current,
-    validateInput: (input) => /^#[0-9a-fA-F]{6}$/.test(input.trim()) ? undefined : '请输入 #RRGGBB 格式'
+  const current = configuration.get('baseColor', DEFAULT_BASE_COLOR);
+  if (colorPickerPanel) {
+    colorPickerPanel.reveal(vscode.ViewColumn.Active);
+    return;
+  }
+  colorPickerPanel = vscode.window.createWebviewPanel(
+    'mamecolour.colorPicker',
+    'Mamecolour: Set Window Base Color',
+    vscode.ViewColumn.Active,
+    { enableScripts: true, retainContextWhenHidden: true }
+  );
+  const nonce = createNonce();
+  colorPickerPanel.webview.html = colorPickerHtml(current, nonce);
+  colorPickerPanel.webview.onDidReceiveMessage(async message => {
+    if (message.type === 'cancel') {
+      colorPickerPanel.dispose();
+      return;
+    }
+    if (message.type !== 'apply' || !/^#[0-9a-fA-F]{6}$/.test(message.color || '')) return;
+    try {
+      await configuration.update('baseColor', message.color.toUpperCase(), targetFor(configuration));
+      await applyBaseColor();
+      colorPickerPanel.dispose();
+    } catch (error) {
+      showError(error);
+    }
   });
-  if (!value) return;
-  const target = targetFor(configuration);
-  await configuration.update('baseColor', value.trim().toUpperCase(), target);
-  await applyBaseColor();
+  colorPickerPanel.onDidDispose(() => { colorPickerPanel = undefined; });
 }
 
 async function resetColors() {
   const configuration = vscode.workspace.getConfiguration('mamecolour');
-  const themeName = configuration.get('themeName', 'Catppuccin Mocha').trim() || 'Catppuccin Mocha';
   const target = targetFor(configuration);
   const workbench = vscode.workspace.getConfiguration();
   const current = workbench.get('workbench.colorCustomizations') || {};
-  const themeKey = '[' + themeName + ']';
-  const theme = { ...(current[themeKey] || {}) };
-  for (const key of GENERATED_KEYS) delete theme[key];
   const next = { ...current };
-  if (Object.keys(theme).length === 0) delete next[themeKey];
-  else next[themeKey] = theme;
+  const themeKey = getThemeScope(configuration);
+  if (themeKey) {
+    const theme = { ...(current[themeKey] || {}) };
+    for (const key of GENERATED_KEYS) delete theme[key];
+    if (Object.keys(theme).length === 0) delete next[themeKey];
+    else next[themeKey] = theme;
+  } else {
+    for (const key of GENERATED_KEYS) delete next[key];
+  }
   await workbench.update('workbench.colorCustomizations', next, target);
   vscode.window.showInformationMessage('Mamecolour 已移除生成的颜色设置');
 }
@@ -561,4 +721,3 @@ function showError(error) {
 function deactivate() {}
 
 module.exports = { activate, deactivate };
-
