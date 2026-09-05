@@ -26,6 +26,30 @@ npm run package
 
 安装生成的 `.vsix`，在 Extension Development Host 中测试三个命令及 workspace/global 两种保存范围。
 
+## Release 管理
+
+版本号遵循 SemVer：修复问题使用 patch，增加兼容功能使用 minor，破坏性变更使用 major。
+
+```powershell
+# 例如发布 Bug 修复版：0.1.1 -> 0.1.2
+npm run release:patch
+
+# 或者使用 release:minor / release:major
+# 然后在 CHANGELOG.md 顶部补充本次变更
+npm run release:verify
+```
+
+版本脚本会同步修改 `package.json` 和 `package-lock.json`，不会自动修改 CHANGELOG、提交 Git 或推送远程仓库。验证通过后，提交代码并创建同版本标签，例如：
+
+```powershell
+git add package.json package-lock.json CHANGELOG.md extension.js README.md public .vscodeignore
+git commit -m "release: v0.1.2"
+git tag v0.1.2
+git push origin main --tags
+```
+
+如果暂时没有 PAT，可以将 `npm run release:verify` 生成的 `.vsix` 手动上传到 Marketplace Publisher 管理页；有 PAT 后再使用 `vsce publish`。
+
 ## 发布
 
 ```powershell

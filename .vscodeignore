@@ -7,3 +7,4 @@ CHANGELOG.md
 public/icon/src/**
 public/icon/*.af
 public/icon/*lock*
+scripts/**

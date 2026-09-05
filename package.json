@@ -84,6 +84,10 @@
   },
   "scripts": {
     "check": "node --check extension.js",
-    "package": "npx --yes @vscode/vsce package"
+    "package": "npx --yes @vscode/vsce package",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "release:verify": "npm run check && npm run package"
   }
 }
