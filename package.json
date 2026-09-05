@@ -2,12 +2,12 @@
   "name": "mamecolour",
   "displayName": "Mamecolour Theme Palette",
   "description": "Derive a complete VS Code workbench palette from one base window color.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "Nywerya",
   "license": "MIT",
   "icon": "public/icon/Icon_V1.0.png",
   "galleryBanner": {
-    "color": "#1F1F1F",
+    "color": "#1A1722",
     "theme": "dark"
   },
   "repository": {
@@ -57,7 +57,7 @@
       "properties": {
         "mamecolour.baseColor": {
           "type": "string",
-          "default": "#1F1F1F",
+          "default": "#1A1722",
           "description": "Base window color in #RRGGBB format.",
           "pattern": "^#[0-9a-fA-F]{6}$"
         },

@@ -178,7 +178,7 @@ const GENERATED_KEYS = [
   "titleBar.inactiveBackground"
 ];
 
-const DEFAULT_BASE_COLOR = '#1F1F1F';
+const DEFAULT_BASE_COLOR = '#1A1722';
 
 function getThemeScope(configuration) {
   const themeName = configuration.get('themeName', '').trim();
