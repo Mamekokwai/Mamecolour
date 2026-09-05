@@ -1,0 +1,80 @@
+{
+  "name": "mamecolour",
+  "displayName": "Mamecolour Theme Palette",
+  "description": "Derive a complete VS Code workbench palette from one base window color.",
+  "version": "0.1.0",
+  "publisher": "mamecolour",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_ACCOUNT/mamecolour"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "theme",
+    "color",
+    "palette",
+    "catppuccin",
+    "workbench"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:mamecolour.setBaseColor",
+    "onCommand:mamecolour.applyBaseColor",
+    "onCommand:mamecolour.resetColors"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "mamecolour.setBaseColor",
+        "title": "Mamecolour: Set Window Base Color"
+      },
+      {
+        "command": "mamecolour.applyBaseColor",
+        "title": "Mamecolour: Apply Base Color"
+      },
+      {
+        "command": "mamecolour.resetColors",
+        "title": "Mamecolour: Reset Generated Colors"
+      }
+    ],
+    "configuration": {
+      "title": "Mamecolour",
+      "properties": {
+        "mamecolour.baseColor": {
+          "type": "string",
+          "default": "#2b1e2e",
+          "description": "Base window color in #RRGGBB format.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "mamecolour.themeName": {
+          "type": "string",
+          "default": "Catppuccin Mocha",
+          "description": "Theme scope inside workbench.colorCustomizations."
+        },
+        "mamecolour.configurationTarget": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "global"
+          ],
+          "enumDescriptions": [
+            "Write colors to this workspace's .vscode/settings.json.",
+            "Write colors to the user settings.json."
+          ],
+          "default": "workspace",
+          "description": "Where generated color customizations are saved."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check extension.js",
+    "package": "npx --yes @vscode/vsce package"
+  }
+}
